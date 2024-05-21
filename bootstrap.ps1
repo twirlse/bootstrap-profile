@@ -31,17 +31,14 @@ function Bootstrap-Profile {
 
     $repoPath = GetAbsolutePath $RepoLocation
 
-    BootstrapProfile -Installer $Installer
+    BootstrapPrereqs -Installer $Installer
     CloneProfileRepo -RepoName $Repo -RepoLocation $repoPath
     AddRepoToProfile -RepoName $Repo -RepoLocation $repoPath
+    InstallApps -Installer $Installer -Preset $Preset
 
-    # start a new shell and install apps
-    if ($Installer -eq "scoop") {
-        Start-Process powershell -ArgumentList "-NoExit", "-Command & { Install-ScoopApps -Preset $Preset }"
-    }
 }
 
-function BootstrapProfile ([String]$Installer) {
+function BootstrapPrereqs ([String]$Installer) {
     if ($Installer -eq "scoop") {
         BootstrapUsingScoop
     }
@@ -59,6 +56,11 @@ function BootstrapUsingScoop {
         Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
         Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
         Write-Host "Scoop installed."
+    }
+    else {
+        Write-Host "Scoop already installed, updating."
+        scoop update
+        Write-Host "Scoop updated."
     }
 
     Write-Host "Installing git and gh..."
@@ -168,6 +170,20 @@ function GetAbsolutePath([String]$Path) {
     }
 
     return [System.IO.Path]::GetFullPath($Path)
+}
+
+function InstallApps([String]$Installer, [String]$Preset) {
+    Write-Host "Installing apps for preset: $Preset..."
+
+    # start a new shell and install apps
+    if ($Installer -eq "scoop") {
+        Start-Process powershell -ArgumentList "-Command & { Install-ScoopApps -Preset $Preset }" -NoNewWindow -Wait
+    }
+    elseif ($Installer -eq "winget") {
+        Start-Process powershell -ArgumentList "-Command & { Install-WinGetApps -Preset $Preset }" -NoNewWindow -Wait
+    }
+
+    Write-Host "Done installing apps."
 }
 
 if (-not ([String]::IsNullOrWhiteSpace($Repo))) {
