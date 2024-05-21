@@ -1,17 +1,7 @@
 param (
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [String]$Repo,
-
-    [ValidateNotNullOrEmpty()]
     [String]$RepoLocation = "./scripts",
-
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet('scoop', 'winget')]
     [String]$Installer = "scoop",
-
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet('full', 'minimal')]
     [String]$Preset = "minimal"
 )
 
@@ -180,4 +170,6 @@ function GetAbsolutePath([String]$Path) {
     return [System.IO.Path]::GetFullPath($Path)
 }
 
-Bootstrap-Profile -Repo $Repo -RepoLocation $RepoLocation -Installer $Installer -Preset $Preset
+if (-not ([String]::IsNullOrWhiteSpace($Repo))) {
+    Bootstrap-Profile -Repo $Repo -RepoLocation $RepoLocation -Installer $Installer -Preset $Preset
+}
