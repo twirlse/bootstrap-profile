@@ -12,7 +12,7 @@ Install-ScoopApps or Install-WinGetApps functions in the profile.ps1 to install 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser;
 Invoke-RestMethod -Uri https://raw.githubusercontent.com/twirlse/bootstrap-profile/main/bootstrap.ps1 | Invoke-Expression;
-Bootstrap-Profile -Repo $Repo;
+Bootstrap-Profile -Repo <username/profile-repo-name>;
 ```
 
 ## Parameters
