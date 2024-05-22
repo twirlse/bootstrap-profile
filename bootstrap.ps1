@@ -112,7 +112,7 @@ function CloneProfileRepo([string]$RepoName, [string]$RepoLocation) {
 }
 
 function AddRepoToProfile([int]$PsVersion, [string]$RepoName, [string]$RepoLocation) {
-    Write-Host "Adding $RepoName to powershell $($PSVersionTable.PSVersion.Major) profile..."
+    Write-Host "Adding $RepoName to powershell $PsVersion profile..."
     Write-Host "Repo path: $RepoLocation"
 
     $profilePath = GetProfilePath -PsVersion $PsVersion
