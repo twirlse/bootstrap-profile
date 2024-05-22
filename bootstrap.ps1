@@ -184,17 +184,15 @@ function CreatePsProfile {
         [string]$ProfilePath
     )
 
-    # create profile folder if not exists
+    # create profile folder and file if not exists
     if (-not (Test-Path $profilePath)) {
         $dir = [System.IO.Path]::GetDirectoryName($profilePath)
 
         if (-not (Test-Path $dir)) {
             New-Item -ItemType Directory -Path $dir | Out-Null
         }
-    }
 
-    # create profile file if not exists
-    if (-not (Test-Path $profilePath)) {
+        # create profile file
         New-Item -ItemType File -Path $profilePath | Out-Null
     }
 }
