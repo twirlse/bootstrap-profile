@@ -23,6 +23,8 @@ function Bootstrap-Profile {
         [string]$Preset = "minimal"
     )
 
+    Write-Host "Bootstrapping profile..."
+
     $ErrorActionPreference = "Stop"
 
     if (Test-Path $RepoLocation) {
@@ -36,11 +38,13 @@ function Bootstrap-Profile {
 
     # add repo scripts to ps 5 profile
     AddRepoToProfile -PsVersion 5 -RepoName $Repo -RepoLocation $repoPath
-
     # add repo scripts to ps 7 profile
     AddRepoToProfile -PsVersion 7 -RepoName $Repo -RepoLocation $repoPath
 
+    # install apps from saved preset
     InstallApps -Installer $Installer -Preset $Preset
+
+    Write-Host "Profile bootstrapped."
 }
 
 function BootstrapPrereqs ([string]$Installer) {
