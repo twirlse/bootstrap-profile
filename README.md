@@ -4,8 +4,8 @@ A powershell script to initialize an empty windows machine with profile settings
 
 ## Pre-requisites
 
-A repo with profile.ps1 in the root that will added to your user profile.
-Install-ScoopApps or Install-WinGetApps functions in the profile.ps1 to install programs.
+1. A repo with profile.ps1 in the root that will added to your user profile.
+2. Install-ScoopApps or Install-WinGetApps functions in the profile.ps1 to install programs.
 
 ## Usage
 
