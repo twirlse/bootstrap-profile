@@ -1,26 +1,26 @@
 param (
-    [String]$Repo,
-    [String]$RepoLocation = "./scripts",
-    [String]$Installer = "scoop",
-    [String]$Preset = "minimal"
+    [string]$Repo,
+    [string]$RepoLocation = "./scripts",
+    [string]$Installer = "scoop",
+    [string]$Preset = "minimal"
 )
 
 function Bootstrap-Profile {
     param (
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [String]$Repo,
+        [string]$Repo,
 
         [ValidateNotNullOrEmpty()]
-        [String]$RepoLocation = "./scripts",
+        [string]$RepoLocation = "./scripts",
 
         [ValidateNotNullOrEmpty()]
         [ValidateSet('scoop', 'winget')]
-        [String]$Installer = "scoop",
+        [string]$Installer = "scoop",
 
         [ValidateNotNullOrEmpty()]
         [ValidateSet('full', 'minimal')]
-        [String]$Preset = "minimal"
+        [string]$Preset = "minimal"
     )
 
     $ErrorActionPreference = "Stop"
@@ -33,12 +33,17 @@ function Bootstrap-Profile {
 
     BootstrapPrereqs -Installer $Installer
     CloneProfileRepo -RepoName $Repo -RepoLocation $repoPath
-    AddRepoToProfile -RepoName $Repo -RepoLocation $repoPath
-    InstallApps -Installer $Installer -Preset $Preset
 
+    # add repo scripts to ps 5 profile
+    AddRepoToProfile -PsVersion 5 -RepoName $Repo -RepoLocation $repoPath
+
+    # add repo scripts to ps 7 profile
+    AddRepoToProfile -PsVersion 7 -RepoName $Repo -RepoLocation $repoPath
+
+    InstallApps -Installer $Installer -Preset $Preset
 }
 
-function BootstrapPrereqs ([String]$Installer) {
+function BootstrapPrereqs ([string]$Installer) {
     if ($Installer -eq "scoop") {
         BootstrapUsingScoop
     }
@@ -63,9 +68,10 @@ function BootstrapUsingScoop {
         Write-Host "Scoop updated."
     }
 
-    Write-Host "Installing git and gh..."
+    Write-Host "Installing git, gh and pwsh..."
     scoop install git
     scoop install gh
+    scoop install pwsh
     Write-Host "Installed."
 }
 
@@ -73,7 +79,7 @@ function BootstrapUsingWinGet {
     throw "Not implemented."
 }
 
-function CloneProfileRepo([String]$RepoName, [String]$RepoLocation) {
+function CloneProfileRepo([string]$RepoName, [string]$RepoLocation) {
     Write-Host "Cloning $RepoName to $RepoLocation..."
 
     # check if already logged in into github (supress output and error messages)
@@ -105,11 +111,11 @@ function CloneProfileRepo([String]$RepoName, [String]$RepoLocation) {
     SetRepoPath -RepoPath $RepoLocation
 }
 
-function AddRepoToProfile([String]$RepoName, [String]$RepoLocation) {
-    Write-Host "Adding $RepoName to powershell profile..."
+function AddRepoToProfile([int]$PsVersion, [string]$RepoName, [string]$RepoLocation) {
+    Write-Host "Adding $RepoName to powershell $($PSVersionTable.PSVersion.Major) profile..."
     Write-Host "Repo path: $RepoLocation"
 
-    $profilePath = $PROFILE.CurrentUserAllHosts
+    $profilePath = GetProfilePath -PsVersion $PsVersion
     Write-Host "Profile path: $profilePath"
 
     CreatePsProfile -ProfilePath $profilePath
@@ -124,7 +130,21 @@ function AddRepoToProfile([String]$RepoName, [String]$RepoLocation) {
     Write-Host "Added."
 }
 
-function SetRepoPath([String]$RepoPath) {
+function InstallApps([string]$Installer, [string]$Preset) {
+    Write-Host "Installing apps for preset: $Preset..."
+
+    # start a new shell and install apps
+    if ($Installer -eq "scoop") {
+        Start-Process powershell -ArgumentList "-Command & { Install-ScoopApps -Preset $Preset }" -NoNewWindow -Wait
+    }
+    elseif ($Installer -eq "winget") {
+        Start-Process powershell -ArgumentList "-Command & { Install-WinGetApps -Preset $Preset }" -NoNewWindow -Wait
+    }
+
+    Write-Host "Done installing apps."
+}
+
+function SetRepoPath([string]$RepoPath) {
     if (-not (Test-Path $RepoPath)) {
         throw "Invalid repo path: $RepoPath"
     }
@@ -137,11 +157,27 @@ function SetRepoPath([String]$RepoPath) {
     }
 }
 
+function GetProfilePath([int]$PsVersion) {
+    $profilePath = ""
+
+    if ($PsVersion -eq 5) {
+        $profilePath = & powershell -NoProfile -Command { $PROFILE.CurrentUserAllHosts }
+    }
+    elseif ($PsVersion -ge 7) {
+        $profilePath = & pwsh -NoProfile -Command { $PROFILE.CurrentUserAllHosts }
+    }
+    else {
+        throw "Invalid PowerShell version: $PsVersion"
+    }
+
+    return $profilePath
+}
+
 function CreatePsProfile {
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [String]$ProfilePath
+        [string]$ProfilePath
     )
 
     # create profile folder if not exists
@@ -159,7 +195,7 @@ function CreatePsProfile {
     }
 }
 
-function GetAbsolutePath([String]$Path) {
+function GetAbsolutePath([string]$Path) {
     $isRelative = [System.IO.Path]::IsPathRooted($Path)
 
     if (-not $isRelative) {
@@ -172,20 +208,6 @@ function GetAbsolutePath([String]$Path) {
     return [System.IO.Path]::GetFullPath($Path)
 }
 
-function InstallApps([String]$Installer, [String]$Preset) {
-    Write-Host "Installing apps for preset: $Preset..."
-
-    # start a new shell and install apps
-    if ($Installer -eq "scoop") {
-        Start-Process powershell -ArgumentList "-Command & { Install-ScoopApps -Preset $Preset }" -NoNewWindow -Wait
-    }
-    elseif ($Installer -eq "winget") {
-        Start-Process powershell -ArgumentList "-Command & { Install-WinGetApps -Preset $Preset }" -NoNewWindow -Wait
-    }
-
-    Write-Host "Done installing apps."
-}
-
-if (-not ([String]::IsNullOrWhiteSpace($Repo))) {
+if (-not ([string]::IsNullOrWhiteSpace($Repo))) {
     Bootstrap-Profile -Repo $Repo -RepoLocation $RepoLocation -Installer $Installer -Preset $Preset
 }
