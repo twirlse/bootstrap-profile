@@ -17,7 +17,7 @@ Bootstrap-Profile -Repo <username/profile-repo-name>;
 
 ## Parameters
 
-- **Repo**: The repository to clone and install programs from. Default: `twirlse/bootstrap-profile`.
-- **RepoLocation**: The location to clone the repository to. Default: `./scripts`.
-- **Installer**: The package manager to use, scoop or winget. Default: `scoop`.
-- **Preset**: The preset for which programs to install, minimal or full. Default: `minimal`.
+- **Repo**: The repository for your powershell profile.
+- **RepoLocation**: The local directory to clone the repository into . Default: `./scripts`.
+- **Installer**: The package manager to use; scoop or winget. Default: `scoop`.
+- **Preset**: The preset for which programs to install; minimal or full. Default: `minimal`.
